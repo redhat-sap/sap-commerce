@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Setup Environment Variables
+LOCAL_SOURCE_DIR="${LOCAL_SOURCE_DIR:-/tmp/src}"
+HYBRIS_HOME="${HYBRIS_HOME:-/opt/hybris}"
+HYBRIS_SOURCE_FOLDER="${HYBRIS_SOURCE_DIR:-hybris}"
+HYBRIS_CONTENT_DIR="${LOCAL_SOURCE_DIR}/${HYBRIS_SOURCE_FOLDER}"
+ANT_BUILD_TASKS="${ANT_TASKS:-clean all}"
+ANT_DEPLOY_TASKS="${ANT_TASKS:-deploy}"
+ANT_INITIALIZE_TASKS="${ANT_TASKS:-initialize}"
+
+if [ ! -d "${HYBRIS_CONTENT_DIR}" ]; then
+    echo "Could Not Locate Hybris Directory in Source!"
+    exit 1
+fi
+
+# Copying Source to Hybris Server
+echo "---> Copying Hybris application source ..."
+cp -r ${HYBRIS_CONTENT_DIR}/* "${HYBRIS_HOME}"
+
+# Removing Hybris Source
+rm -rf "${HYBRIS_CONTENT_DIR}"
+
+
+# Build Hybris Server
+echo "---> Building SAP Commerce ..."
+cd "${HYBRIS_HOME}/bin/platform/"
+. ./setantenv.sh
+ant ${ANT_BUILD_TASKS}
+
+if [ $? -ne 0 ]; then
+    echo
+    echo "SAP Commerce Build Failed!"
+    exit 1
+fi
+
+echo
+echo "SAP Commerce Build Successful!"
+
+ant ${ANT_DEPLOY_TASKS}
+
+if [ $? -ne 0 ]; then
+    echo
+    echo "SAP Commerce Deploy Failed!"
+    exit 1
+fi
+
+ant ${ANT_INITIALIZE_TASKS}
+
+if [ $? -ne 0 ]; then
+    echo
+    echo "SAP Commerce Initializing Failed!"
+    exit 1
+fi
+echo
+echo "---> Fixing Permissions ..."
+
+chmod -R u+rwx ${HYBRIS_HOME}
+chmod -R g+rwx ${HYBRIS_HOME}
+chown -R 1001:root ${HYBRIS_HOME}
+
+echo "---> Cleaning Source Directory ..."
+rm -rf "${LOCAL_SOURCE_DIR}"

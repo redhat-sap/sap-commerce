@@ -1,0 +1,132 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: hybris-base
+metadata:
+  annotations:
+    description: Builds a base image of SAP Commerce
+    iconClass: icon-tomcat
+    tags: java,tomcat,hybris
+  name: hybris-base
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      appplication: ${APPLICATION_NAME}
+    name: ${BASE_IMAGE_NAME}
+  spec:
+    dockerImageRepository: ${BASE_IMAGE_LOCATION}
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APPLICATION_NAME}:${APPLICATION_OUPUT_IMAGE_TAG}
+    source:
+      contextDir: ${SOURCE_CONTEXT_DIR}
+      git:
+        ref: ${SOURCE_REPOSITORY_REF}
+        uri: ${SOURCE_REPOSITORY_URL}
+      sourceSecret:
+        name: ${SOURCE_SECRET}
+      type: Git
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}
+        env:
+        - name: NEXUS_URL
+          valueFrom:
+            secretKeyRef:
+              name: ${ARTIFACT_SECRET}
+              key: NEXUS_URL
+        - name: NEXUS_REPO
+          valueFrom:
+            secretKeyRef:
+              name: ${ARTIFACT_SECRET}
+              key: NEXUS_REPO
+        - name: NEXUS_USER
+          valueFrom:
+            secretKeyRef:
+              name: ${ARTIFACT_SECRET}
+              key: NEXUS_USER
+        - name: NEXUS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ${ARTIFACT_SECRET}
+              key: NEXUS_PASSWORD
+      type: Docker
+    triggers:
+    - generic:
+        secret: ${GENERIC_WEBHOOK_SECRET}
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+parameters:
+- description: The name for the Hybris base application.
+  displayName: Application name
+  name: APPLICATION_NAME
+  required: true
+  value: hybris-base
+- description: Name of the Base Image used for the build
+  displayName: Base image name
+  name: BASE_IMAGE_NAME
+  required: true
+  value: ubi
+- description: Location of the Base Image.
+  displayName: Base image location
+  name: BASE_IMAGE_LOCATION
+  required: true
+  value: registry.redhat.io/ubi8/ubi
+- description: Tag of the Base Image.
+  displayName: Base image tag
+  name: BASE_IMAGE_TAG
+  required: true
+  value: "8.1"
+- name: SOURCE_REPOSITORY_URL
+  displayName: Git Repository URL
+  description: The URL of the repository with your application source code.
+  required: true
+  value: https://github.com/redhat-sap/sap-commerce.git
+- name: SOURCE_REPOSITORY_REF
+  displayName: Git Reference
+  description: Set this to a branch name, tag or other ref of your repository if you
+    are not using the default (master) branch.
+  value: master
+- name: SOURCE_CONTEXT_DIR
+  displayName: Git Context Directory
+  description: Set this to the directory where the build information is (e.g. Dockerfile)
+    if not using the default
+  value: "/"
+- name: SOURCE_SECRET
+  displayName: Source Secret
+  description: Name of the source secret
+  value: gogs-secret
+- name: ARTIFACT_SECRET
+  displayName: Name of the Artifacts Repository secret
+  description: Name of the Artifacts Repository secret
+  value: nexus-secret
+- name: APPLICATION_OUPUT_IMAGE_TAG
+  displayName: Image tag for output Hybris base.
+  description: This is the image tag used for the Hybris base.
+  value: latest
+- description: Generic build trigger secret
+  displayName: Generic Webhook Secret
+  from: '[a-zA-Z0-9]{8}'
+  generate: expression
+  name: GENERIC_WEBHOOK_SECRET
+  required: true

@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  hybrislicence.jar: <your base64 based license information>
+kind: Secret
+metadata:
+  name: hybrislicense
+type: Opaque

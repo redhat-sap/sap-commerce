@@ -1,0 +1,18 @@
+#!/bin/bash
+
+HYBRIS_HOME="${HYBRIS_HOME:-/opt/hybris}"
+HYBRIS_LICENCE_SOURCE="${HYBRIS_LICENCE_SOURCE:-/etc/hybris/licence/hybrislicence.jar}"
+HYBRIS_LICENCE_DEST="${HYBRIS_LICENCE_DEST:-/opt/hybris/config/licence/hybrislicence.jar}"
+HYBRIS_CONFIG_SOURCE="${HYBRIS_CONFIG_SOURCE:-/etc/hybris/config/local.properties}"
+HYBRIS_CONFIG_DEST="${HYBRIS_CONFIG_DEST:-/opt/hybris/config/local.properties}"
+
+if [ -f "${HYBRIS_LICENCE_SOURCE}" ]; then
+  cp -fv "${HYBRIS_LICENCE_SOURCE}" "${HYBRIS_LICENCE_DEST}"
+fi
+
+if [ -f "${HYBRIS_CONFIG_SOURCE}" ]; then
+  cp -fv "${HYBRIS_CONFIG_SOURCE}" "${HYBRIS_CONFIG_DEST}"
+fi
+
+cd ${HYBRIS_HOME}/bin/platform/
+./hybrisserver.sh
