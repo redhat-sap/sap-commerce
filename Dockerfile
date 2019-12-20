@@ -1,9 +1,8 @@
 FROM registry.redhat.io/ubi8/ubi:8.1
 
-MAINTAINER 'Red Hat SAP Community of Practice'
-
 LABEL io.openshift.s2i.destination="/tmp"  \
-      io.openshift.s2i.scripts-url="image:///usr/local/s2i"
+      io.openshift.s2i.scripts-url="image:///usr/local/s2i" \
+      maintainer="Red Hat SAP Community of Practice"
 
 ENV SAPMACHINE_FILE_NAME='sapmachine-jdk-11.0.5-1.x86_64.rpm' \
     HYBRIS_FILE_NAME='hybris.tar.gz' \
@@ -23,16 +22,6 @@ RUN mkdir -p $STAGING_DIR && \
     yum install -y $STAGING_DIR/$SAPMACHINE_FILE_NAME && \
     rm -rf $STAGING_DIR && \
     cp -R $HYBRIS_HOME/bin/platform/resources/configtemplates/production $HYBRIS_HOME/config && \
-    #cd $HYBRIS_HOME/bin/platform && \
-    #. ./setantenv.sh && \
-    #ant clean all && \
-    #cp -R $HYBRIS_HOME/bin/platform/resources/configtemplates/production $HYBRIS_HOME && \
-    #mv $HYBRIS_HOME/production $HYBRIS_HOME/config && \
-    #rm -rf $HYBRIS_HOME/bin/platform/tomcat && \
-    #export APACHE_DIR=$(ls /opt/apache | head -1) && \
-    #curl -u $NEXUS_USER:$NEXUS_PASSWORD -v -k -o /opt/apache/$APACHE_DIR/lib/catalina-jmx-remote.jar  $NEXUS_URL/repository/$NEXUS_REPO/$TOMCAT_JMX_REMOTE_SOURCE_FILE && \
-    #mv /opt/apache/$APACHE_DIR $HYBRIS_HOME/bin/platform && \
-    #mv $HYBRIS_HOME/bin/platform/$APACHE_DIR $HYBRIS_HOME/bin/platform/tomcat && \
     useradd -u 1001 -r -g 0 -d /opt/hybris -s /sbin/nologin -c "Hybris User" hybris && \
     chmod -R g+rwX /opt/hybris && \
     chown -R 1001:root /opt/hybris
