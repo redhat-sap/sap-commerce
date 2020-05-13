@@ -34,7 +34,7 @@ The deployed OpenShift objects will expect some Secrets and ConfigMaps to be in 
 ```bash
 oc process -f supporting-tools/gogs-secret.yml | oc create -f-
 oc process -f supporting-tools/hybrisconfig.yml | oc create -f-
-oc process -f supporting-tools/hybrislinces.yml | oc create -f-
+oc process -f supporting-tools/hybrislicense.yml | oc create -f-
 oc process -f supporting-tools/nexus-secret.yml | oc create -f-
 ```
 
